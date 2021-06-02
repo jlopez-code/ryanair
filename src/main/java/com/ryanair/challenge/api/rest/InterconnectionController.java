@@ -25,13 +25,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @Validated
 @RestController
-@RequestMapping("/")
+@RequestMapping("/ryanair")
 @RequiredArgsConstructor
 public class InterconnectionController {
 
     private final GetFlights getFlights;
 
-    @GetMapping("/interconnections")
+    @GetMapping("/flights")
     public GenericResponse<List<FlightDTO>> getFlights(@Valid final BookFlightRequestDTO bookFlightRequestDTO) {
         log.debug("Getting flights by : departure : %s, departureDateTime : %s, arrival : %s, arrivalDateTime : %s"
             .formatted(bookFlightRequestDTO.getDeparture(), bookFlightRequestDTO.getDepartureDateTime(),
