@@ -1,0 +1,6 @@
+provider:
+  ryanair:
+    routes:
+      url: https://services-api.ryanair.com/locate/3
+    schedule:
+      url: https://services-api.ryanair.com/timtbl/3
