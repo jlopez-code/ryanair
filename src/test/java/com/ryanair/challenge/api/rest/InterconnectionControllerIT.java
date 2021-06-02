@@ -43,13 +43,9 @@ class InterconnectionControllerIT extends AbstractRestTest {
             .characterEncoding(UTF_8)
             .content(getNotFoundErrorMessage(ROUTE_NOT_FOUND)))
 
-            // THEN
+        // THEN
             .andDo(print())
-            .andExpect(status().isOk());
-
-        validateExceptionContent(resultActions);
-        assertThat(resultActions.andReturn().getResponse().getContentAsString())
-            .contains(ROUTE_NOT_FOUND);
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -66,13 +62,9 @@ class InterconnectionControllerIT extends AbstractRestTest {
             .characterEncoding(UTF_8)
             .content(getNotFoundErrorMessage(SCHEDULE_NOT_FOUND)))
 
-            // THEN
+        // THEN
             .andDo(print())
-            .andExpect(status().isOk());
-
-        validateExceptionContent(resultActions);
-        assertThat(resultActions.andReturn().getResponse().getContentAsString())
-            .contains(SCHEDULE_NOT_FOUND);
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -91,11 +83,7 @@ class InterconnectionControllerIT extends AbstractRestTest {
 
             // THEN
             .andDo(print())
-            .andExpect(status().isOk());
-
-        validateExceptionContent(resultActions);
-        assertThat(resultActions.andReturn().getResponse().getContentAsString())
-            .contains(BCN, BUD, T_10_00, T_12_30);
+            .andExpect(status().isNotFound());
     }
 
     private String getNotFoundErrorMessage(String message) throws JsonProcessingException {
