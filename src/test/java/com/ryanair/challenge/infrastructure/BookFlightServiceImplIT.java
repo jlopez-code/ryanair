@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.Resource;
-import org.springframework.test.annotation.DirtiesContext;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -27,13 +26,13 @@ import java.util.List;
 import static com.ryanair.challenge.util.Constants.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class BookFlightServiceImplIT {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final String BGY = "BGY";
 
     @Autowired
     private BookFlightServiceImpl bookFlightService;
@@ -49,16 +48,28 @@ class BookFlightServiceImplIT {
     @Value("classpath:response/valid_schedule.json")
     private Resource validSchedule;
 
+    @Value("classpath:response/valid_BCN_CFU_routes.json")
+    private Resource validBCNCFURoutes;
+
+    @Value("classpath:response/valid_BCN_CFU_schedule.json")
+    private Resource validBCNCFUSchedule;
+
+    @Value("classpath:response/valid_BGY_CFU_schedule.json")
+    private Resource validBGYCFUSchedule;
+
+    @Value("classpath:response/valid_BCN_BGY_schedule.json")
+    private Resource validBCNBGYSchedule;
+
     @Value("classpath:response/invalid_schedule.json")
     private Resource invalidSchedule;
 
     @Test
-    @DirtiesContext
     void should_return_valid_response_when_there_are_routes_and_schedule() throws IOException {
 
         //GIVEN
         when(ryanairRouteClient.getRoutes(BCN)).thenReturn(
-            OBJECT_MAPPER.readValue(IOUtils.toString(validRoutes.getInputStream()), new TypeReference<List<RouteDTO>>() {}));
+            OBJECT_MAPPER.readValue(IOUtils.toString(validRoutes.getInputStream()), new TypeReference<List<RouteDTO>>() {
+            }));
         when(ryanairScheduleClient.getSchedule(any(), any(), any(), any())).thenReturn(
             OBJECT_MAPPER.readValue(IOUtils.toString(validSchedule.getInputStream()), ScheduleDTO.class));
 
@@ -80,7 +91,6 @@ class BookFlightServiceImplIT {
     }
 
     @Test
-    @DirtiesContext
     void should_return_exception_when_there_are_not_routes() {
 
         //GIVEN
@@ -104,12 +114,12 @@ class BookFlightServiceImplIT {
     }
 
     @Test
-    @DirtiesContext
     void should_return_exception_when_there_are_not_schedule() throws IOException {
 
         //GIVEN
         when(ryanairRouteClient.getRoutes("BCN"))
-            .thenReturn(OBJECT_MAPPER.readValue(IOUtils.toString(validRoutes.getInputStream()), new TypeReference<List<RouteDTO>>() {}));
+            .thenReturn(OBJECT_MAPPER.readValue(IOUtils.toString(validRoutes.getInputStream()), new TypeReference<List<RouteDTO>>() {
+            }));
         when(ryanairScheduleClient.getSchedule(any(), any(), any(), any()))
             .thenReturn(OBJECT_MAPPER.readValue(IOUtils.toString(invalidSchedule.getInputStream()), ScheduleDTO.class));
 
@@ -131,5 +141,70 @@ class BookFlightServiceImplIT {
             .asString()
             .contains("No flights available from");
     }
+
+
+    @Test
+    void should_return_multiple_fligths_when_there_are_routes_and_schedule() throws IOException {
+
+        //GIVEN
+        mockReturnForMultipleResults();
+
+        //WHEN
+        Either<BookFlightServiceException, List<Flight>> flights =
+            bookFlightService.getFlights(
+                BookFlightRequest.builder().arrival(CFU).departure(BCN)
+                    .departureDateTime(LocalDateTime.of(2021, 07, 27, 00, 01))
+                    .arrivalDateTime(LocalDateTime.of(2021, 07, 27, 23, 59)).build());
+
+        //THEN
+        assertThat(flights)
+            .isNotNull()
+            .isInstanceOf(Either.Right.class);
+        assertThat(flights.get())
+            .isNotNull()
+            .hasSize(2);
+    }
+
+
+    @Test
+    void should_return_fligth_when_filter_by_hour_there_are_routes_and_schedule() throws IOException {
+
+        //GIVEN
+        mockReturnForMultipleResults();
+
+        //WHEN
+        Either<BookFlightServiceException, List<Flight>> flights =
+            bookFlightService.getFlights(
+                BookFlightRequest.builder().arrival(CFU).departure(BCN)
+                    .departureDateTime(LocalDateTime.of(2021, 07, 27, 00, 01))
+                    .arrivalDateTime(LocalDateTime.of(2021, 07, 27, 20, 10)).build());
+
+        //THEN
+        assertThat(flights)
+            .isNotNull()
+            .isInstanceOf(Either.Right.class);
+        assertThat(flights.get())
+            .isNotNull()
+            .hasSize(1)
+            .asList()
+            .first()
+            .hasFieldOrPropertyWithValue("stops", 1)
+            .extracting("legs")
+            .asList()
+            .hasSize(2);
+    }
+
+    private void mockReturnForMultipleResults() throws IOException {
+        when(ryanairRouteClient.getRoutes(BCN)).thenReturn(
+            OBJECT_MAPPER.readValue(IOUtils.toString(validBCNCFURoutes.getInputStream()), new TypeReference<List<RouteDTO>>() {
+            }));
+        when(ryanairScheduleClient.getSchedule(BCN, CFU, 2021, 07))
+            .thenReturn(OBJECT_MAPPER.readValue(IOUtils.toString(validBCNCFUSchedule.getInputStream()), ScheduleDTO.class));
+        when(ryanairScheduleClient.getSchedule(BCN, BGY, 2021, 07))
+            .thenReturn(OBJECT_MAPPER.readValue(IOUtils.toString(validBCNBGYSchedule.getInputStream()), ScheduleDTO.class));
+        when(ryanairScheduleClient.getSchedule(BGY, CFU, 2021, 07))
+            .thenReturn(OBJECT_MAPPER.readValue(IOUtils.toString(validBGYCFUSchedule.getInputStream()), ScheduleDTO.class));
+    }
+
 
 }
