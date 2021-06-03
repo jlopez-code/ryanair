@@ -19,6 +19,7 @@ public class Constants {
     public static final String BCN = "BCN";
     public static final String BUD = "BUD";
     public static final String DUB = "DUB";
+    public static final String CFU = "CFU";
     public static final String UTF_8 = "UTF-8";
     public static final String T_06_19 = "2021-06-16T06:19";
     public static final String T_23_59 = "2021-06-16T23:59";

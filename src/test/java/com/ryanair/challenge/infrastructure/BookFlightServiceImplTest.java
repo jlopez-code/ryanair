@@ -1,22 +1,15 @@
 package com.ryanair.challenge.infrastructure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryanair.challenge.domain.BookFlightService;
 import com.ryanair.challenge.domain.exception.BookFlightServiceException;
 import com.ryanair.challenge.domain.model.BookFlightRequest;
 import com.ryanair.challenge.domain.model.Flight;
-import com.ryanair.challenge.infrastructure.client.dto.DayDTO;
-import com.ryanair.challenge.infrastructure.client.dto.FlightDTO;
 import com.ryanair.challenge.infrastructure.client.dto.ScheduleDTO;
 import com.ryanair.challenge.infrastructure.client.ryanair.routes.RyanairRouteClient;
 import com.ryanair.challenge.infrastructure.client.ryanair.schedule.RyanairScheduleClient;
 import io.vavr.control.Either;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import com.ryanair.challenge.infrastructure.client.dto.RouteDTO;
-
 
 import java.io.IOException;
 import java.time.LocalDateTime;
